@@ -1,0 +1,15 @@
+Django<3
+django-bootstrap-form
+Pillow
+PyPDF2
+pytz
+sqlparse
+six
+sqlparse
+wordcloud
+pdfminer3
+matplotlib
+gunicorn
+detectlanguage
+
+
