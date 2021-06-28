@@ -13,7 +13,7 @@ TYPES = [
 
 
 class Documento(models.Model):
-    nome = models.CharField('Nome do pesquisador', max_length=60)
+    nome = models.CharField('Nome do(a) pesquisador(a)', max_length=60)
     email = models.EmailField(max_length=50)
     arquivo = models.FileField('Arquivo em PDF ou Texto', upload_to='output', max_length=200)
     language = models.CharField('Linguagem', max_length=5, null=True, blank=True)
