@@ -96,6 +96,7 @@ def nuvem(request, id):
         imagem = generate_words(nome_arquivo, documento.language, mask, color)
     else:
         imagem = generate(nome_arquivo, documento.stopwords, documento.language, mask, color)
+        print(f'Imagem: {imagem}')
 
     contexto = {
         'show': flag,

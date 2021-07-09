@@ -26,7 +26,7 @@ SECRET_KEY = 'aus2botya&b3@*#qbk@j=#73087jm=)w5dz_f7a628p-$(*-yu'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-API_KEY_LANGUAGE = ''
+API_KEY_LANGUAGE = 'cfaaa167b4be9d8f793e833a5b329bfe'
 
 ALLOWED_HOSTS = []
 
