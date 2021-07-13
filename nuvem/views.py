@@ -71,7 +71,8 @@ def nuvem(request, id):
         lang_detect = detectlanguage.detect(trecho)
         if len(lang_detect) > 0:
             precisao = lang_detect[0]['confidence']
-            if precisao > 7:
+            print(lang_detect[0])
+            if precisao > 5:
                 documento.language = lang_detect[0]['language']
                 documento.save()
     mask = None
