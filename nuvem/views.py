@@ -71,7 +71,6 @@ def nuvem(request, id):
         lang_detect = detectlanguage.detect(trecho)
         if len(lang_detect) > 0:
             precisao = lang_detect[0]['confidence']
-            print(lang_detect[0])
             if precisao > 5:
                 documento.language = lang_detect[0]['language']
                 documento.save()
@@ -97,7 +96,6 @@ def nuvem(request, id):
         imagem = generate_words(nome_arquivo, documento.language, mask, color)
     else:
         imagem = generate(nome_arquivo, documento.stopwords, documento.language, mask, color)
-        print(f'Imagem: {imagem}')
 
     contexto = {
         'show': flag,
