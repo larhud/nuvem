@@ -25,9 +25,11 @@ SECRET_KEY = 'aus2botya&b3@*#qbk@j=#73087jm=)w5dz_f7a628p-$(*-yu'
 
 DEBUG = False
 
-ALLOWED_HOSTS = []
-
 API_KEY_LANGUAGE = ''
+
+FONT_PATH = ''
+
+ALLOWED_HOSTS = []
 
 # Application definition
 
