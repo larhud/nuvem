@@ -23,7 +23,6 @@ sys.path.insert(0, BASE_DIR)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'aus2botya&b3@*#qbk@j=#73087jm=)w5dz_f7a628p-$(*-yu'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 API_KEY_LANGUAGE = ''
