@@ -36,7 +36,8 @@ def nuvem(request, id):
     documento = Documento.objects.get(pk=id)
     form = LayoutForm(request.POST or None, request.FILES or None,
                       initial={'descricao': documento.descritivo or None,
-                               'cores': documento.cores
+                               'cores': documento.cores,
+                               'select': documento.select
                                })
 
     flag = documento.chave and request.GET.get('chave') and documento.chave == request.GET.get('chave')
@@ -50,6 +51,7 @@ def nuvem(request, id):
                 documento.imagem = None
             documento.stopwords = form.cleaned_data.get('stopwords')
             documento.cores = form.cleaned_data.get('cores')
+            documento.select = form.cleaned_data.get('select')
             documento.save()
             messages.success(request, 'Alteração salva com sucesso.')
 
@@ -73,6 +75,7 @@ def nuvem(request, id):
             precisao = lang_detect[0]['confidence']
             if precisao > 5:
                 documento.language = lang_detect[0]['language']
+                documento.select = lang_detect[0]['language']
                 documento.save()
     mask = None
     channel = 0
