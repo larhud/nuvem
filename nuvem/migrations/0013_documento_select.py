@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='documento',
             name='select',
-            field=models.CharField(blank=True, choices=[('portuguese', 'PT'), ('spanish', 'ES'), ('english', 'EN')], max_length=12, null=True),
+            field=models.CharField(blank=True, choices=[('portuguese', 'PT'), ('spanish', 'ES'), ('english', 'EN')],
+                                   max_length=12, null=True),
         ),
     ]
