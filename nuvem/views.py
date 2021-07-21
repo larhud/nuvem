@@ -62,12 +62,13 @@ def nuvem(request, id):
     if os.path.exists(prefix + '.dedup'):
         os.rename(prefix + '.dedup', nome_arquivo)
 
+    numero_linhas = 50
     if not documento.language:
         try:
-            linhas = open(nome_arquivo).read().lower().split('\n')[0:20]
+            linhas = open(nome_arquivo).read().lower().split('\n')[0:numero_linhas]
         except UnicodeDecodeError as erro:
-            linhas = open(nome_arquivo, encoding='ISO-8859-1').read().lower().split('.')[0:20]
-        trecho = ' '.join([('' if len(linha) < 20 else linha) for linha in linhas])
+            linhas = open(nome_arquivo, encoding='ISO-8859-1').read().lower().split('.')[0:numero_linhas]
+        trecho = ' '.join([('' if len(linha) < numero_linhas else linha) for linha in linhas])
         lang_detect = detectlanguage.detect(trecho)
         if len(lang_detect) > 0:
             precisao = lang_detect[0]['confidence']
