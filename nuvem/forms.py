@@ -4,7 +4,7 @@ import re
 from django import forms
 from django.conf import settings
 from django.forms import ModelForm
-from .models import Documento, TYPES
+from .models import Documento, TYPES, TYPES_LANG
 
 
 class DocumentoForm(ModelForm):
@@ -40,6 +40,8 @@ class LayoutForm(forms.Form):
         attrs=(
             {'class': 'custom-file-input', 'id': 'inputGroupFile01', 'aria-describedby': 'inputGroupFileAddon01'}
         )), label='Imagem:', required=False)
+    select = forms.ChoiceField(label='Selecione o idioma:',choices=TYPES_LANG, required=True)
+
     descricao = forms.CharField(widget=forms.Textarea(),
                                 label='Descrição:', required=False)
     stopwords = forms.CharField(widget=forms.Textarea(),
