@@ -27,3 +27,10 @@ ALLOWED_HOSTS = ['%(host)s', 'www.%(host)s', ]
 
 REPLY_TO_EMAIL = 'ppgci@eco.ufrj.br'
 DEFAULT_FROM_EMAIL = 'ppgci@eco.ufrj.br'
+
+# A API Key para detecção da linguagem pode ser obtida em https://detectlanguage.com/
+API_KEY_LANGUAGE = ''
+
+# Local onde se encontram os tipos de fontes das letras da nuvem
+# Se vc não especificar, a rotina ira utilizar as fontes localizadas em
+FONT_PATH=''
