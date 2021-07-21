@@ -11,9 +11,9 @@ TYPES = [
     ('keywords', 'Palavras Chaves'),
 ]
 TYPES_LANG = [
-    ('pt', 'Português'),
-    ('es', 'Espanhol'),
-    ('en', 'Inglês'),
+    ('Português', 'Português'),
+    ('Espanhol', 'Espanhol'),
+    ('Inglês', 'Inglês'),
 ]
 
 class Documento(models.Model):
