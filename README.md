@@ -15,9 +15,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```     
 
-2) copie o local.py para o diretório larhud e altere o arquivo com as configurações específicas da sua instalação
+2) copie o configs/defaults/local.py para o diretório larhud e altere o arquivo com as configurações específicas da sua instalação, principalmente com os parâmetros do banco de dados e do font_path
 
-3) Crie o banco e teste se está tudo ok:
+3) Se você estiver utilizando MySQL, crie o banco. Se você estiver utilizando sqlite, basta rodar o migrate que o banco é criado automaticamente:
 
 ```
 python manage.py migrate

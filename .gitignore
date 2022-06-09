@@ -1,5 +1,5 @@
 fabfile.py
-db.sqlite3
+*.sqlite3
 *.pyc
 larhud/local.py
 venv/*
