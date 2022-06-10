@@ -42,9 +42,10 @@ class LayoutForm(forms.Form):
         )), label='Imagem:', required=False)
     select = forms.ChoiceField(label='Selecione o idioma:',choices=TYPES_LANG, required=True)
 
-    descricao = forms.CharField(widget=forms.Textarea(),
+    descricao = forms.CharField(widget=forms.Textarea(attrs={'rows': 4,}),
                                 label='Descrição:', required=False)
-    stopwords = forms.CharField(widget=forms.Textarea(),
+    stopwords = forms.CharField(widget=forms.Textarea(attrs={'rows': 4,}),
                                 label='Adicione mais stopwords (separando-as por ","):', required=False)
+    # min_size = forms.IntegerField(widget=forms.IntegerField(), label='Frequência mínima:', initial=2)
     cores = forms.BooleanField(widget=forms.CheckboxInput,
                                label='Cores da Imagem', required=False)
