@@ -3,7 +3,7 @@ Este serviço permite gerar uma nuvem de palavras para textos em português, ing
 O intuito é que um usuário leigo possa executar uma nuvem de palavras sem que precise instalar nenhum software
 em seu computador. Para tal, o usuário precisa apenas enviar um arquivo em PDF ou TXT e o serviço irá gerar a imagem com uma nuvem de palavras.
 
-#Como instalar
+## Como instalar
 
 1) Faça o download do projeto via git clone
 

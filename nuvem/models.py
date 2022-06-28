@@ -16,6 +16,7 @@ TYPES_LANG = [
     ('Inglês', 'Inglês'),
 ]
 
+
 class Documento(models.Model):
     nome = models.CharField('Nome do(a) pesquisador(a)', max_length=60)
     email = models.EmailField(max_length=50)
@@ -28,6 +29,7 @@ class Documento(models.Model):
     stopwords = models.TextField('Stopwords Extras', null=True, blank=True)
     chave = models.CharField('Chave de Acesso', max_length=20, null=True, blank=True)
     cores = models.BooleanField(default=False)
+    font_type = models.CharField('Font Type', max_length=40, null=True, blank=True)
 
     @property
     def texto(self):
