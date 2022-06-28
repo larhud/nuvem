@@ -17,8 +17,12 @@ pip install -r requirements.txt
 
 2) copie o configs/defaults/local.py para o diretório larhud e altere o arquivo com as configurações específicas da sua instalação, principalmente com os parâmetros do banco de dados e do font_path
 
-* Confira se DEBUG=True para que você consiga visualizar as imagens localmente
+* Confira se DEBUG=True para que você consiga visualizar as imagens localmente.
 * Confira se o FONT_PATH está apontando para o caminho correto.
+* Se estiver usando Windows, o FONT_PATH deve ser o caminho para a pasta de fontes do Windows, geralmente localizada em `C:/Windows/Fonts/`.
+* Caso tenha algum problema com a o caminho padrão do Windows, tente passar o caminho para a pasta de fontes do projeto, localizada em `/nuvem/estaticos/fonts/` (lembre-se de passar o caminho completo, onde seu projeto está localizado).
+* Nota: Cuidado ao usar `\`, pois o python utiliza `\` para introduzir caracteres especiais. Ná duvida substitua por `/` ou `\\`.
+
 
 3) Se você estiver utilizando MySQL, crie o banco. Se você estiver utilizando sqlite, basta rodar o migrate que o banco é criado automaticamente:
 
