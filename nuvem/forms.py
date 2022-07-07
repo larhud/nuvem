@@ -1,22 +1,25 @@
+from http.client import FOUND
 import os
 import re
 
 from django import forms
 from django.conf import settings
 from django.forms import ModelForm
-from .models import Documento, TYPES, TYPES_LANG
+from .models import TYPES_FONT, Documento, TYPES, TYPES_LANG, TYPES_FONT
 
 
 class DocumentoForm(ModelForm):
 
     tipo = forms.ChoiceField(choices=TYPES, required=True)
+    fonte = forms.ChoiceField(choices=TYPES_FONT, required=True)
 
     class Media:
         js = ('js/validation.js',)
 
     class Meta:
         model = Documento
-        fields = ['nome', 'email', 'tipo', 'arquivo']
+        #fields = ['nome', 'email', 'tipo', 'arquivo']
+        fields = ['nome', 'email', 'tipo', 'arquivo','fonte']
 
     def clean_arquivo(self):
         files = self.files.getlist('arquivo')

@@ -15,6 +15,14 @@ TYPES_LANG = [
     ('Espanhol', 'Espanhol'),
     ('Inglês', 'Inglês'),
 ]
+TYPES_FONT = [
+    ('Carlito-Regular.ttf', 'Carlito'),
+    ('Comfortaa Bold.ttf', 'Comfortaa-Bold'),
+    ('Cooper Regular.ttf', 'Cooper'),
+    ('Dyuthi.ttf', 'Dyuthi'),
+    ('Lato-Regular.ttf', 'Lato-Regular'),
+    ('Poppins-Regular.ttf', 'Poppins')
+]
 
 class Documento(models.Model):
     nome = models.CharField('Nome do(a) pesquisador(a)', max_length=60)
@@ -28,6 +36,7 @@ class Documento(models.Model):
     stopwords = models.TextField('Stopwords Extras', null=True, blank=True)
     chave = models.CharField('Chave de Acesso', max_length=20, null=True, blank=True)
     cores = models.BooleanField(default=False)
+    font_name = models.CharField(max_length=50, choices=TYPES_FONT, null=True, blank=True)
 
     @property
     def texto(self):

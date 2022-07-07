@@ -35,8 +35,11 @@ def generate_words(nome_arquivo, language='pt', mask=None, color=False):
             writer.writerow(item)
 
     cloud = WordCloud(width=1200, height=800, max_words=100, scale=1, background_color='white', mask=mask,
-                      font_path=os.path.join(settings.BASE_DIR, 'estaticos', 'fonts', 'Lato-Regular.ttf'),
+                      font_path=os.path.join(settings.BASE_DIR, 'estaticos', 'fonts', settings.FONT_NAME),
                       max_font_size=90, random_state=42)
+    #cloud = WordCloud(width=1200, height=800, max_words=100, scale=1, background_color='white', #mask=mask,
+    #                  font_path=os.path.join(settings.BASE_DIR, 'estaticos', 'fonts', #'Lato-Regular.ttf'),
+    #                  max_font_size=90, random_state=42)
 
     cloud.generate_from_frequencies(frequencia)
 
@@ -107,9 +110,12 @@ def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False
     def black_color_func(word, font_size, position, orientation, random_state=None, **kwargs):
         return "hsl(0,100%, 1%)"
 
+    #cloud = WordCloud(width=1200, height=800, max_words=100, scale=4, background_color='white',
+    #                  mask=mask, min_font_size=5, max_font_size=100, random_state=40,
+    #                  font_path=settings.FONT_PATH+'Lato-Regular.ttf')
     cloud = WordCloud(width=1200, height=800, max_words=100, scale=4, background_color='white',
                       mask=mask, min_font_size=5, max_font_size=100, random_state=40,
-                      font_path=settings.FONT_PATH+'Lato-Regular.ttf')
+                      font_path=settings.FONT_PATH)
 
     cloud.generate_from_frequencies(frequencia)
     # cloud.recolor(color_func=black_color_func)

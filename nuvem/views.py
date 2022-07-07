@@ -10,6 +10,7 @@ from django.http import HttpResponseRedirect
 
 from django.shortcuts import render, redirect, get_object_or_404
 
+from larhud.settings import FONT_PATH
 from .models import Documento
 from .forms import DocumentoForm, LayoutForm
 from django.conf import settings

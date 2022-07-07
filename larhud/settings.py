@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import sys
+from nuvem.models import font_name
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -133,3 +134,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 FONT_PATH ='/usr/share/fonts/truetype/msttcorefonts/'
 # FONT_PATH = os.path.join(BASE_DIR, 'estaticos', 'fonts')
+
+# Nome da fonte que sera escolhida pelo usuário
+# O nome da fonte é recebido pelo genwordcloud
+FONT_NAME = font_name
