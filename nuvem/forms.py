@@ -7,7 +7,7 @@ from django.conf import settings
 from django.forms import ModelForm
 
 from larhud.settings import FONT_PATH, FONT_NAME
-from .models import TYPES_FONT, Documento, TYPES, TYPES_LANG
+from .models import Documento, TYPES, TYPES_LANG, TYPES_FONT
 
 
 class DocumentoForm(ModelForm):
@@ -20,7 +20,7 @@ class DocumentoForm(ModelForm):
 
     class Meta:
         model = Documento
-        fields = ['nome', 'email', 'tipo', 'arquivo','font_type']
+        fields = ['nome', 'email', 'tipo', 'font_type', 'arquivo',]
 
     def clean_arquivo(self):
         files = self.files.getlist('arquivo')
@@ -38,6 +38,35 @@ class DocumentoForm(ModelForm):
                                           'são permitidos para esse tipo de arquivo.' % (extension, file.name))
             return self.cleaned_data.get('arquivo')
 
+    #Documento.objects.create(numero='1111', #tipo=Documento.font_type)
+
+    font_name = Documento.objects.last()
+    font_name_gwc = ''
+
+    if font_name.font_type == Documento.font_type:
+        if Documento.font_type == 'Carlito-Regular.ttf':
+            font_name_gwc = 'Carlito-Regular.ttf'
+
+    elif font_name.font_type == Documento.font_type:
+        if Documento.font_type == 'Comfortaa Bold.ttf':
+            font_name_gwc = 'Comfortaa Bold.ttf'
+
+    elif font_name.font_type == Documento.font_type:
+        if Documento.font_type == 'Cooper Regular.ttf':
+            font_name_gwc = 'Cooper Regular.ttf'
+
+    elif font_name.font_type == Documento.font_type:
+        if Documento.font_type == 'Dyuthi.ttf':
+            font_name_gwc = 'Dyuthi.ttf'
+
+    elif font_name.font_type == Documento.font_type:
+        if Documento.font_type == 'Lato-Regular.ttf':
+            font_name_gwc = 'Lato-Regular.ttf'
+
+    elif font_name.font_type == Documento.font_type:
+        if Documento.font_type == 'Poppins-Regular.ttf':
+            font_name_gwc = 'Poppins-Regular.ttf'
+
 
 class LayoutForm(forms.Form):
     imagem = forms.FileField(widget=forms.FileInput(
@@ -53,3 +82,4 @@ class LayoutForm(forms.Form):
     # min_size = forms.IntegerField(widget=forms.IntegerField(), label='Frequência mínima:', initial=2)
     cores = forms.BooleanField(widget=forms.CheckboxInput,
                                label='Cores da Imagem', required=False)
+

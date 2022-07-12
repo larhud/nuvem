@@ -65,22 +65,6 @@ class Documento(models.Model):
     def pdf_link(self):
         return mark_safe('<a class="grp-button" href="/nuvem/nuvem/%s?chave=%s">Gerar Nuvem</a>' % (self.id, self.chave))
 
-    # a ideia seria definir esse font_name que seria enviado ao genwordcloud porem com os testes feito font_type nunca 
-    # se iguala a nenhum desses valores, indo direto para o else.
-    # tentei alguns outras maneiras, mas nenhuma deu certo.
-    if font_type == carlito:
-        FONT_NAME = carlito
-    elif font_type == comfortaa:
-        FONT_NAME = comfortaa
-    elif font_type == cooper:
-        FONT_NAME = cooper
-    elif font_type == dyuthi:
-        FONT_NAME = dyuthi
-    elif font_type == lato:
-        FONT_NAME = lato
-    else:
-        FONT_NAME = poppins
-
     pdf_link.short_description = 'Nuvem'
    
         

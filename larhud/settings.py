@@ -139,5 +139,3 @@ FONT_PATH = os.path.join(BASE_DIR, 'estaticos', 'fonts')
 
 # Nome da fonte que sera escolhida pelo usuário
 # O nome da fonte é recebido pelo genwordcloud
-
-FONT_NAME = ''
