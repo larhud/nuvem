@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import sys
-from nuvem.models import font_name
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,13 +21,17 @@ sys.path.insert(0, BASE_DIR)
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'aus2botya&b3@*#qbk@j=#73087jm=)w5dz_f7a628p-$(*-yu'
+SECRET_KEY = 'YSw5e35JDpX0xLsUxj0ZpfL1VVljG3_l3e1peKeNJNw'
+#YSw5e35JDpX0xLsUxj0ZpfL1VVljG3_l3e1peKeNJNw
+#aus2botya&b3@*#qbk@j=#73087jm=)w5dz_f7a628p-$(*-yu
 
 DEBUG = False
 
-API_KEY_LANGUAGE = ''
+API_KEY_LANGUAGE = '7480e4e3bd00c4a200f3923d4d05f4d0'
 
 FONT_PATH = ''
+
+FONT_NAME = ''
 
 ALLOWED_HOSTS = []
 
@@ -132,9 +135,9 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-FONT_PATH ='/usr/share/fonts/truetype/msttcorefonts/'
-# FONT_PATH = os.path.join(BASE_DIR, 'estaticos', 'fonts')
+FONT_PATH = os.path.join(BASE_DIR, 'estaticos', 'fonts')
 
 # Nome da fonte que sera escolhida pelo usuário
 # O nome da fonte é recebido pelo genwordcloud
-FONT_NAME = font_name
+
+FONT_NAME = ''

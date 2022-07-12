@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils.html import mark_safe
 from django.dispatch import receiver
 from django.db.models.signals import *
+from wordcloud import WordCloud
 
 TYPES = [
     ('simple_text', 'Texto Simples'),
@@ -15,13 +16,21 @@ TYPES_LANG = [
     ('Espanhol', 'Espanhol'),
     ('Inglês', 'Inglês'),
 ]
+
+carlito = 'Carlito-Regular.ttf'
+comfortaa = 'Comfortaa Bold.ttf'
+cooper = 'Cooper Regular.ttf'
+dyuthi = 'Dyuthi.ttf'
+lato = 'Lato-Regular.ttf'
+poppins = 'Poppins-Regular.ttf'
+
 TYPES_FONT = [
-    ('Carlito-Regular.ttf', 'Carlito'),
-    ('Comfortaa Bold.ttf', 'Comfortaa-Bold'),
-    ('Cooper Regular.ttf', 'Cooper'),
-    ('Dyuthi.ttf', 'Dyuthi'),
-    ('Lato-Regular.ttf', 'Lato-Regular'),
-    ('Poppins-Regular.ttf', 'Poppins')
+    (carlito, 'Carlito'),
+    (comfortaa, 'Comfortaa-Bold'),
+    (cooper, 'Cooper'),
+    (dyuthi, 'Dyuthi'),
+    (lato, 'Lato-Regular'),
+    (poppins, 'Poppins')
 ]
 
 class Documento(models.Model):
@@ -36,7 +45,7 @@ class Documento(models.Model):
     stopwords = models.TextField('Stopwords Extras', null=True, blank=True)
     chave = models.CharField('Chave de Acesso', max_length=20, null=True, blank=True)
     cores = models.BooleanField(default=False)
-    font_name = models.CharField(max_length=50, choices=TYPES_FONT, null=True, blank=True)
+    font_type = models.CharField('Font Type', max_length=40, choices=TYPES_FONT, null=True, blank=True)
 
     @property
     def texto(self):
@@ -52,13 +61,29 @@ class Documento(models.Model):
     def img(self):
         filename = os.path.splitext(os.path.basename(self.arquivo.path))[0]
         return os.path.join(settings.MEDIA_URL, 'output', filename + '.png')
-
+            
     def pdf_link(self):
         return mark_safe('<a class="grp-button" href="/nuvem/nuvem/%s?chave=%s">Gerar Nuvem</a>' % (self.id, self.chave))
 
+    # a ideia seria definir esse font_name que seria enviado ao genwordcloud porem com os testes feito font_type nunca 
+    # se iguala a nenhum desses valores, indo direto para o else.
+    # tentei alguns outras maneiras, mas nenhuma deu certo.
+    if font_type == carlito:
+        FONT_NAME = carlito
+    elif font_type == comfortaa:
+        FONT_NAME = comfortaa
+    elif font_type == cooper:
+        FONT_NAME = cooper
+    elif font_type == dyuthi:
+        FONT_NAME = dyuthi
+    elif font_type == lato:
+        FONT_NAME = lato
+    else:
+        FONT_NAME = poppins
+
     pdf_link.short_description = 'Nuvem'
-
-
+   
+        
 @receiver(post_delete, sender=Documento)
 def deletar_arquivos(sender, instance, **kwargs):
     prefix = os.path.splitext(instance.arquivo.path)[0]

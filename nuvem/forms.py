@@ -5,25 +5,27 @@ import re
 from django import forms
 from django.conf import settings
 from django.forms import ModelForm
-from .models import TYPES_FONT, Documento, TYPES, TYPES_LANG, TYPES_FONT
+
+from larhud.settings import FONT_PATH, FONT_NAME
+from .models import TYPES_FONT, Documento, TYPES, TYPES_LANG
 
 
 class DocumentoForm(ModelForm):
 
     tipo = forms.ChoiceField(choices=TYPES, required=True)
-    fonte = forms.ChoiceField(choices=TYPES_FONT, required=True)
+    font_type = forms.ChoiceField(choices=TYPES_FONT, required=True)
 
     class Media:
         js = ('js/validation.js',)
 
     class Meta:
         model = Documento
-        #fields = ['nome', 'email', 'tipo', 'arquivo']
-        fields = ['nome', 'email', 'tipo', 'arquivo','fonte']
+        fields = ['nome', 'email', 'tipo', 'arquivo','font_type']
 
     def clean_arquivo(self):
         files = self.files.getlist('arquivo')
         tipo = self.cleaned_data.get('tipo')
+        font_type = self.cleaned_data.get('font_type')
         for file in files:
             extension = os.path.splitext(file.name)[1]
             if extension != '.txt' and extension != '.pdf':
@@ -34,7 +36,6 @@ class DocumentoForm(ModelForm):
             if tipo == 'keywords' and extension != '.txt':
                 self.add_error('arquivo', 'Extensão %s do arquivo %s inválida. Somente arquivos .txt '
                                           'são permitidos para esse tipo de arquivo.' % (extension, file.name))
-
             return self.cleaned_data.get('arquivo')
 
 

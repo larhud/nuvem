@@ -109,6 +109,9 @@ def nuvem(request, id):
         'nuvem': imagem
     }
 
+    #if documento.font_type == 'Lato-Regular.ttf':
+    #   FONT_NAME = 'Lato-Regular.ttf'
+
     return render(request, 'nuvem.html', contexto)
 
 
