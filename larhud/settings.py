@@ -31,8 +31,6 @@ API_KEY_LANGUAGE = '7480e4e3bd00c4a200f3923d4d05f4d0'
 
 FONT_PATH = ''
 
-FONT_NAME = ''
-
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -136,6 +134,3 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 FONT_PATH = os.path.join(BASE_DIR, 'estaticos', 'fonts')
-
-# Nome da fonte que sera escolhida pelo usuário
-# O nome da fonte é recebido pelo genwordcloud

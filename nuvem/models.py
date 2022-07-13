@@ -17,22 +17,6 @@ TYPES_LANG = [
     ('Inglês', 'Inglês'),
 ]
 
-carlito = 'Carlito-Regular.ttf'
-comfortaa = 'Comfortaa Bold.ttf'
-cooper = 'Cooper Regular.ttf'
-dyuthi = 'Dyuthi.ttf'
-lato = 'Lato-Regular.ttf'
-poppins = 'Poppins-Regular.ttf'
-
-TYPES_FONT = [
-    (carlito, 'Carlito'),
-    (comfortaa, 'Comfortaa-Bold'),
-    (cooper, 'Cooper'),
-    (dyuthi, 'Dyuthi'),
-    (lato, 'Lato-Regular'),
-    (poppins, 'Poppins')
-]
-
 class Documento(models.Model):
     nome = models.CharField('Nome do(a) pesquisador(a)', max_length=60)
     email = models.EmailField(max_length=50)
@@ -45,7 +29,8 @@ class Documento(models.Model):
     stopwords = models.TextField('Stopwords Extras', null=True, blank=True)
     chave = models.CharField('Chave de Acesso', max_length=20, null=True, blank=True)
     cores = models.BooleanField(default=False)
-    font_type = models.CharField('Font Type', max_length=40, choices=TYPES_FONT, null=True, blank=True)
+    font_type = models.CharField('Font Type', max_length=40, null=True, blank=True)
+    #font_type = models.CharField('Font Type', max_length=40, choices=TYPES_FONT, null=True, blank=True)
 
     @property
     def texto(self):
