@@ -10,7 +10,6 @@ from django.http import HttpResponseRedirect
 
 from django.shortcuts import render, redirect, get_object_or_404
 
-from larhud.settings import FONT_PATH
 from .models import Documento
 from .forms import DocumentoForm, LayoutForm
 from django.conf import settings
@@ -53,6 +52,7 @@ def nuvem(request, id):
             documento.stopwords = form.cleaned_data.get('stopwords')
             documento.cores = form.cleaned_data.get('cores')
             documento.select = form.cleaned_data.get('select')
+            documento.font_type = form.cleaned_data.get('font_type')
             documento.save()
             messages.success(request, 'Alteração salva com sucesso.')
 
@@ -98,9 +98,9 @@ def nuvem(request, id):
         color = False
 
     if documento.tipo == 'keywords':
-        imagem = generate_words(nome_arquivo, documento.language, mask, color)
+        imagem = generate_words(nome_arquivo, documento.language, mask, color, documento.font_type)
     else:
-        imagem = generate(nome_arquivo, documento.stopwords, documento.language, mask, color)
+        imagem = generate(nome_arquivo, documento.stopwords, documento.language, mask, color, documento.font_type)
 
     contexto = {
         'show': flag,
@@ -108,9 +108,6 @@ def nuvem(request, id):
         'doc': documento,
         'nuvem': imagem
     }
-
-    #if documento.font_type == 'Lato-Regular.ttf':
-    #   FONT_NAME = 'Lato-Regular.ttf'
 
     return render(request, 'nuvem.html', contexto)
 
@@ -143,8 +140,8 @@ def new_doc(request):
                 if post.tipo == 'keywords':
                     filename = os.path.join(settings.MEDIA_ROOT, 'output', post.arquivo.name)
                     url_filename = os.path.join('output', post.arquivo.name)
-                    doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=url_filename,
-                                                   tipo=post.tipo, chave=key)
+                    doc = Documento.objects.create(nome=form.nome, email=form.email, arquivo=url_filename,
+                                                   tipo=form.tipo, chave=key, font_type=form.font_type)
 
                     return custom_redirect('nuvem', doc.pk, chave=key)
                 else:
@@ -161,7 +158,7 @@ def new_doc(request):
                     for f in request.FILES.getlist('arquivo'):
                         filename, extensao = os.path.splitext(str(f))
                         doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=f, tipo=post.tipo,
-                                                       chave=key)
+                                                       chave=key, font_type=post.font_type)
                         if extensao == '.pdf':
                             pdf2txt(doc.arquivo.path)
                         docs.append(doc)
@@ -177,7 +174,7 @@ def new_doc(request):
                         extra_file.close()
                         extra_filename = os.path.join('output', extra_filename)
                         doc_extra = Documento.objects.create(nome=post.nome, email=post.email, arquivo=extra_filename,
-                                                             tipo=post.tipo, chave=key)
+                                                             tipo=post.tipo, chave=key, font_type=post.font_type)
                         return custom_redirect('nuvem', doc_extra.pk, chave=key)
                     else:
                         return custom_redirect('nuvem', docs[0].pk, chave=key)

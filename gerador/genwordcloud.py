@@ -13,7 +13,7 @@ from nuvem.forms import DocumentoForm
 import matplotlib.pyplot as plt
 
 
-def generate_words(nome_arquivo, language='pt', mask=None, color=False):
+def generate_words(nome_arquivo, language='pt', mask=None, color=False, font_type=None):
     prefix, file_extension = os.path.splitext(nome_arquivo)
 
     try:
@@ -37,7 +37,7 @@ def generate_words(nome_arquivo, language='pt', mask=None, color=False):
             writer.writerow(item)
 
     cloud = WordCloud(width=1200, height=800, max_words=100, scale=1, background_color='white', mask=mask,
-                      font_path=os.path.join(settings.BASE_DIR, 'estaticos', 'fonts', DocumentoForm.FONT_NAME),
+                      font_path=os.path.join(settings.FONT_PATH, font_type),
                       max_font_size=90, random_state=42)
     #cloud = WordCloud(width=1200, height=800, max_words=100, scale=1, background_color='white', #mask=mask,
     #                  font_path=os.path.join(settings.BASE_DIR, 'estaticos', 'fonts', #'Lato-Regular.ttf'),
@@ -56,7 +56,7 @@ def generate_words(nome_arquivo, language='pt', mask=None, color=False):
     return image_filename
 
 
-def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False):
+def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False, font_type=None):
     excecoes = []
     sw_filename = os.path.join(settings.BASE_DIR, 'gerador', 'stopwords-%s.txt' % language)
     if language and os.path.exists(sw_filename):
@@ -117,7 +117,7 @@ def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False
     #                  font_path=settings.FONT_PATH+'Lato-Regular.ttf')
     cloud = WordCloud(width=1200, height=800, max_words=100, scale=4, background_color='white',
                       mask=mask, min_font_size=5, max_font_size=100, random_state=40,
-                      font_path=settings.FONT_PATH + DocumentoForm.FONT_NAME)
+                      font_path=os.path.join(settings.FONT_PATH, font_type))
 
     cloud.generate_from_frequencies(frequencia)
     # cloud.recolor(color_func=black_color_func)
