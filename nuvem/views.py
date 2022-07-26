@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import uuid
 import json
@@ -10,8 +11,11 @@ from django.http import HttpResponseRedirect
 
 from django.shortcuts import render, redirect, get_object_or_404
 
-from .models import Documento
-from .forms import DocumentoForm, LayoutForm
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from nuvem.models import Documento
+from nuvem.forms import DocumentoForm, LayoutForm
 from django.conf import settings
 from gerador.genwordcloud import generate, generate_words
 from django.contrib import messages

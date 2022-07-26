@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from django.db.models.signals import *
 from wordcloud import WordCloud
 
+
 TYPES = [
     ('simple_text', 'Texto Simples'),
     ('keywords', 'Palavras Chaves'),
@@ -25,7 +26,6 @@ TYPES_FONT = [
     ('Lato-Regular.ttf', 'Lato-Regular'),
     ('Poppins-Regular.ttf', 'Poppins')
 ]
-
 
 class Documento(models.Model):
     nome = models.CharField('Nome do(a) pesquisador(a)', max_length=60)

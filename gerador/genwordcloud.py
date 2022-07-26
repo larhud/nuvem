@@ -39,9 +39,6 @@ def generate_words(nome_arquivo, language='pt', mask=None, color=False, font_typ
     cloud = WordCloud(width=1200, height=800, max_words=100, scale=1, background_color='white', mask=mask,
                       font_path=os.path.join(settings.FONT_PATH, font_type),
                       max_font_size=90, random_state=42)
-    #cloud = WordCloud(width=1200, height=800, max_words=100, scale=1, background_color='white', #mask=mask,
-    #                  font_path=os.path.join(settings.BASE_DIR, 'estaticos', 'fonts', #'Lato-Regular.ttf'),
-    #                  max_font_size=90, random_state=42)
 
     cloud.generate_from_frequencies(frequencia)
 
