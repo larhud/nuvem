@@ -39,9 +39,11 @@ def custom_redirect(url_name, *args, **kwargs):
 def nuvem(request, id):
     documento = Documento.objects.get(pk=id)
     form = LayoutForm(request.POST or None, request.FILES or None,
-                      initial={'descricao': documento.descritivo or None,
-                               'cores': documento.cores,
-                               'select': documento.select
+                      initial={
+                                'descricao': documento.descritivo or None,
+                                'font_type': documento.font_type,
+                                'cores': documento.cores,
+                                'select': documento.select
                                })
 
     flag = documento.chave and request.GET.get('chave') and documento.chave == request.GET.get('chave')
@@ -53,12 +55,16 @@ def nuvem(request, id):
                 documento.imagem = form.cleaned_data.get('imagem')
             else:
                 documento.imagem = None
+
+            documento.font_type = form.cleaned_data.get('font_type')
             documento.stopwords = form.cleaned_data.get('stopwords')
             documento.cores = form.cleaned_data.get('cores')
             documento.select = form.cleaned_data.get('select')
-            documento.font_type = form.cleaned_data.get('font_type')
+            
             documento.save()
             messages.success(request, 'Alteração salva com sucesso.')
+
+            
 
     nome_arquivo = documento.arquivo.path
     prefix, file_extension = os.path.splitext(nome_arquivo)

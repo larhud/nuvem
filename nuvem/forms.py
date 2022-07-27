@@ -1,6 +1,10 @@
 from http.client import FOUND
 import os
 import re
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from django import forms
 from django.conf import settings
@@ -49,7 +53,7 @@ class LayoutForm(forms.Form):
             {'class': 'custom-file-input', 'id': 'inputGroupFile01', 'aria-describedby': 'inputGroupFileAddon01'}
         )), label='Imagem:', required=False)
     select = forms.ChoiceField(label='Selecione o idioma:',choices=TYPES_LANG, required=True)
-    font_type = forms.ChoiceField(choices=TYPES_FONT, required=True)
+    font_type = forms.ChoiceField(label= 'Selecione a fonte:',choices=TYPES_FONT, required=True)
     descricao = forms.CharField(widget=forms.Textarea(attrs={'rows': 4,}),
                                 label='Descrição:', required=False)
     stopwords = forms.CharField(widget=forms.Textarea(attrs={'rows': 4,}),
