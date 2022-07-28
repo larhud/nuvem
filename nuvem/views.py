@@ -38,6 +38,8 @@ def custom_redirect(url_name, *args, **kwargs):
 
 def nuvem(request, id):
     documento = Documento.objects.get(pk=id)
+    key = str(uuid.uuid4())
+    key = key[:20]
     form = LayoutForm(request.POST or None, request.FILES or None,
                       initial={
                                 'descricao': documento.descritivo or None,
@@ -60,20 +62,20 @@ def nuvem(request, id):
             documento.stopwords = form.cleaned_data.get('stopwords')
             documento.cores = form.cleaned_data.get('cores')
             documento.select = form.cleaned_data.get('select')
-            
+
             documento.save()
             messages.success(request, 'Alteração salva com sucesso.')
 
             
 
-    nome_arquivo = documento.arquivo.path
-    prefix, file_extension = os.path.splitext(nome_arquivo)
-    if not os.path.exists(prefix + '.txt'):
-        pdf2txt(documento.arquivo.path)
+    nome_arquivo = documento.arquivo.path                       #path = root + ext
+    prefix, file_extension = os.path.splitext(nome_arquivo)     #prefix = (root,ext)
+    if not os.path.exists(prefix + '.txt'):                     #caso nao seja um arquivo txt
+        pdf2txt(documento.arquivo.path)                         #vamos converter de pdf para txt
 
     nome_arquivo = prefix + '.txt'
-    if os.path.exists(prefix + '.dedup'):
-        os.rename(prefix + '.dedup', nome_arquivo)
+    if os.path.exists(prefix + '.dedup'):                       #caso exista um arquivo.depup
+        os.rename(prefix + '.dedup', prefix + key + '.dedup')   #renomear usando a key
 
     numero_linhas = 50
     if not documento.language:
