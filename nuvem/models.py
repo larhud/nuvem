@@ -18,11 +18,11 @@ TYPES_LANG = [
     ('Inglês', 'Inglês'),
 ]
 
+#('Dyuthi.ttf', 'Dyuthi')
 TYPES_FONT = [
     ('Carlito-Regular.ttf', 'Carlito'),
     ('Comfortaa Bold.ttf', 'Comfortaa-Bold'),
     ('Cooper Regular.ttf', 'Cooper'),
-    ('Dyuthi.ttf', 'Dyuthi'),
     ('Lato-Regular.ttf', 'Lato-Regular'),
     ('Poppins-Regular.ttf', 'Poppins')
 ]

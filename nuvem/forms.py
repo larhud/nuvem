@@ -2,6 +2,7 @@ from http.client import FOUND
 import os
 import re
 import sys
+import pathlib
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -43,7 +44,7 @@ class DocumentoForm(ModelForm):
             if tipo == 'keywords' and extension != '.txt':
                 self.add_error('arquivo', 'Extensão %s do arquivo %s inválida. Somente arquivos .txt '
                                           'são permitidos para esse tipo de arquivo.' % (extension, file.name))
-            
+
             return self.cleaned_data.get('arquivo')
 
 

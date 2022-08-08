@@ -10,6 +10,7 @@ from PIL import Image
 from django.http import HttpResponseRedirect
 
 from django.shortcuts import render, redirect, get_object_or_404
+from larhud.settings import FONT_PATH
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -66,9 +67,12 @@ def nuvem(request, id):
             documento.save()
             messages.success(request, 'Alteração salva com sucesso.')
 
-            
 
-    nome_arquivo = documento.arquivo.path                       #path = root + ext
+    nome_arquivo = documento.arquivo.path                       #path = root + ext  
+
+    if not os.path.exists(FONT_PATH + '\\' + documento.font_type):
+        messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte. Path: %s' % (FONT_PATH + '\\' + documento.font_type))
+
     prefix, file_extension = os.path.splitext(nome_arquivo)     #prefix = (root,ext)
     if not os.path.exists(prefix + '.txt'):                     #caso nao seja um arquivo txt
         pdf2txt(documento.arquivo.path)                         #vamos converter de pdf para txt
@@ -100,6 +104,17 @@ def nuvem(request, id):
             mask = np.array(image)
         except Exception:
             messages.error(request, 'Não foi possivel usar a imagem como mascára, por favor selecione outra.')
+
+    fonte = documento.font_type
+    if not os.path.exists(nome_arquivo):
+        messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte.')
+        
+    # if documento.font_type:
+    #     try:
+    #         os.path.exists(documento.font_type)
+    #     except Exception:
+    #         messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte.')
+            
 
     # Fix error: Not Implement methods para imagens com menos de 3 canais.
     if channel >= 3 or not documento.cores:
