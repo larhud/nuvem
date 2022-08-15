@@ -8,9 +8,6 @@ import csv
 from collections import Counter
 from wordcloud import WordCloud, ImageColorGenerator
 from django.conf import settings
-from nuvem.models import Documento
-from nuvem.forms import DocumentoForm
-import matplotlib.pyplot as plt
 
 
 def generate_words(nome_arquivo, language='pt', mask=None, color=False, font_type=None):
@@ -73,7 +70,7 @@ def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False
     # Busca cabeçalhos e rodapés
     frequencia = Counter()
     for linha in arquivo.read().lower().split('\n'):
-        if len(linha) > 3:
+        if len(linha.strip()) > 3:
             frequencia[linha] += 1
     arquivo.close()
 
@@ -109,9 +106,6 @@ def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False
     def black_color_func(word, font_size, position, orientation, random_state=None, **kwargs):
         return "hsl(0,100%, 1%)"
 
-    #cloud = WordCloud(width=1200, height=800, max_words=100, scale=4, background_color='white',
-    #                  mask=mask, min_font_size=5, max_font_size=100, random_state=40,
-    #                  font_path=settings.FONT_PATH+'Lato-Regular.ttf')
     cloud = WordCloud(width=1200, height=800, max_words=100, scale=4, background_color='white',
                       mask=mask, min_font_size=5, max_font_size=100, random_state=40,
                       font_path=os.path.join(settings.FONT_PATH, font_type))

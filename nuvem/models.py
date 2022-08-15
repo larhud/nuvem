@@ -7,18 +7,17 @@ from django.dispatch import receiver
 from django.db.models.signals import *
 from wordcloud import WordCloud
 
-
 TYPES = [
     ('simple_text', 'Texto Simples'),
     ('keywords', 'Palavras Chaves'),
 ]
+
 TYPES_LANG = [
-    ('Português', 'Português'),
-    ('Espanhol', 'Espanhol'),
-    ('Inglês', 'Inglês'),
+    ('pt', 'Português'),
+    ('es', 'Espanhol'),
+    ('en', 'Inglês'),
 ]
 
-#('Dyuthi.ttf', 'Dyuthi')
 TYPES_FONT = [
     ('Carlito-Regular.ttf', 'Carlito'),
     ('Comfortaa Bold.ttf', 'Comfortaa-Bold'),
@@ -27,12 +26,12 @@ TYPES_FONT = [
     ('Poppins-Regular.ttf', 'Poppins')
 ]
 
+
 class Documento(models.Model):
     nome = models.CharField('Nome do(a) pesquisador(a)', max_length=60)
     email = models.EmailField(max_length=50)
     arquivo = models.FileField('Arquivo em PDF ou Texto', upload_to='output', max_length=200)
-    language = models.CharField('Linguagem', max_length=5, null=True, blank=True)
-    select = models.CharField(max_length=12, choices=TYPES_LANG, null=True, blank=True)
+    language = models.CharField('Linguagem', choices=TYPES_LANG, max_length=5, null=True, blank=True)
     tipo = models.CharField(max_length=12, choices=TYPES, null=True, blank=True)
     imagem = models.ImageField('Imagem Modelo', upload_to='modelo', max_length=200, null=True, blank=True)
     descritivo = models.TextField('Descritivo da Nuvem', null=True, blank=True)
@@ -40,6 +39,9 @@ class Documento(models.Model):
     chave = models.CharField('Chave de Acesso', max_length=20, null=True, blank=True)
     cores = models.BooleanField(default=False)
     font_type = models.CharField('Font Type', max_length=40, choices=TYPES_FONT, null=True, blank=True)
+    consolidado = models.BooleanField(default=False)
+    status = models.CharField(choices=(('A', 'Aberto'), ('P', 'Programado'), ('F', 'Finalizado'),
+                                       ('E', 'Com erro')), max_length=1, default='A')
 
     @property
     def texto(self):

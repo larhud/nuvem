@@ -10,10 +10,9 @@ from PIL import Image
 from django.http import HttpResponseRedirect
 
 from django.shortcuts import render, redirect, get_object_or_404
-from larhud.settings import FONT_PATH
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+from threading import Thread
+from datetime import datetime
 
 from nuvem.models import Documento
 from nuvem.forms import DocumentoForm, LayoutForm
@@ -22,7 +21,8 @@ from gerador.genwordcloud import generate, generate_words
 from django.contrib import messages
 from gerador.pdf2txt import pdf2txt
 
-''' Configuration API LANGUAGE DETECT'''
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 detectlanguage.configuration.api_key = settings.API_KEY_LANGUAGE
 
 
@@ -39,17 +39,18 @@ def custom_redirect(url_name, *args, **kwargs):
 
 def nuvem(request, id):
     documento = Documento.objects.get(pk=id)
-    key = str(uuid.uuid4())
-    key = key[:20]
+    if documento.status != 'F':
+        return render(request, 'nuvem.html', {'allow_edit': False, 'doc': documento})
+
     form = LayoutForm(request.POST or None, request.FILES or None,
                       initial={
                                 'descricao': documento.descritivo or None,
                                 'font_type': documento.font_type,
                                 'cores': documento.cores,
-                                'select': documento.select
+                                'select': documento.language
                                })
 
-    flag = documento.chave and request.GET.get('chave') and documento.chave == request.GET.get('chave')
+    allow_edit = documento.chave and request.GET.get('chave') and documento.chave == request.GET.get('chave')
 
     if request.POST:
         if form.is_valid():
@@ -62,38 +63,42 @@ def nuvem(request, id):
             documento.font_type = form.cleaned_data.get('font_type')
             documento.stopwords = form.cleaned_data.get('stopwords')
             documento.cores = form.cleaned_data.get('cores')
-            documento.select = form.cleaned_data.get('select')
-
+            documento.language = form.cleaned_data.get('select')
             documento.save()
             messages.success(request, 'Alteração salva com sucesso.')
 
+    nome_arquivo = documento.arquivo.path
 
-    nome_arquivo = documento.arquivo.path                       #path = root + ext  
-
-    if not os.path.exists(FONT_PATH + '\\' + documento.font_type):
-        messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte. Path: %s' % (FONT_PATH + '\\' + documento.font_type))
+    # if not os.path.exists(FONT_PATH + '\\' + documento.font_type):
+    #    messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte. Path: %s' % (FONT_PATH + '\\' + documento.font_type))
 
     prefix, file_extension = os.path.splitext(nome_arquivo)     #prefix = (root,ext)
     if not os.path.exists(prefix + '.txt'):                     #caso nao seja um arquivo txt
         pdf2txt(documento.arquivo.path)                         #vamos converter de pdf para txt
 
     nome_arquivo = prefix + '.txt'
-    if os.path.exists(prefix + '.dedup'):                       #caso exista um arquivo.depup
-        os.rename(prefix + '.dedup', prefix + key + '.dedup')   #renomear usando a key
+    # if os.path.exists(prefix + '.dedup'):                       #caso exista um arquivo.dedup
+    #    os.rename(prefix + '.dedup', prefix + key + '.dedup')   #renomear usando a key
 
     numero_linhas = 50
     if not documento.language:
         try:
-            linhas = open(nome_arquivo).read().lower().split('\n')[0:numero_linhas]
+            num_linha = 0
+            trecho = ''
+            with open(nome_arquivo) as f:
+                while num_linha < 50:
+                    linha = f.readline().lower().strip()
+                    if len(linha) > 3:
+                        trecho += linha+' '
+                        num_linha += 1
         except UnicodeDecodeError as erro:
             linhas = open(nome_arquivo, encoding='ISO-8859-1').read().lower().split('.')[0:numero_linhas]
-        trecho = ' '.join([('' if len(linha) < numero_linhas else linha) for linha in linhas])
+            trecho = ' '.join([('' if len(linha) < numero_linhas else linha) for linha in linhas])
         lang_detect = detectlanguage.detect(trecho)
         if len(lang_detect) > 0:
             precisao = lang_detect[0]['confidence']
             if precisao > 5:
                 documento.language = lang_detect[0]['language']
-                documento.select = lang_detect[0]['language']
                 documento.save()
     mask = None
     channel = 0
@@ -105,8 +110,8 @@ def nuvem(request, id):
         except Exception:
             messages.error(request, 'Não foi possivel usar a imagem como mascára, por favor selecione outra.')
 
-    fonte = documento.font_type
-    if not os.path.exists(nome_arquivo):
+    font_type = documento.font_type or 'Carlito-Regular.ttf'
+    if not os.path.exists(os.path.join(settings.FONT_PATH,font_type)):
         messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte.')
         
     # if documento.font_type:
@@ -114,7 +119,6 @@ def nuvem(request, id):
     #         os.path.exists(documento.font_type)
     #     except Exception:
     #         messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte.')
-            
 
     # Fix error: Not Implement methods para imagens com menos de 3 canais.
     if channel >= 3 or not documento.cores:
@@ -125,18 +129,49 @@ def nuvem(request, id):
         color = False
 
     if documento.tipo == 'keywords':
-        imagem = generate_words(nome_arquivo, documento.language, mask, color, documento.font_type)
+        imagem = generate_words(nome_arquivo, documento.language, mask, color, font_type)
     else:
-        imagem = generate(nome_arquivo, documento.stopwords, documento.language, mask, color, documento.font_type)
+        imagem = generate(nome_arquivo, documento.stopwords, documento.language, mask, color, font_type)
 
     contexto = {
-        'show': flag,
+        'allow_edit': allow_edit,
         'form': form,
         'doc': documento,
         'nuvem': imagem
     }
 
     return render(request, 'nuvem.html', contexto)
+
+
+class ProcessThread(Thread):
+    def __init__(self, document_id):
+        Thread.__init__(self)
+        self.document_id = document_id
+        self.started = datetime.now()
+
+    def run(self):
+        doc_base = Documento.objects.get(id=self.document_id)
+        if doc_base.consolidado:
+            extra_file = open(doc_base.arquivo.path, 'w+')
+            for doc in Documento.objects.filter(chave=doc_base.chave).exclude(id=self.document_id):
+                filename, extensao = os.path.splitext(doc.arquivo.path)
+                if extensao == '.pdf':
+                    pdf2txt(doc.arquivo.path)
+                    print('PDF gerado %s' % doc.arquivo.path)
+                with open(filename + '.txt', 'r') as f:
+                    extra_file.write(f.read())
+                    extra_file.write('\n')
+            extra_file.close()
+            doc_base.status = 'F'
+            doc_base.save()
+            finished = datetime.now()
+        else:
+            pdf2txt(doc_base.arquivo.path)
+            doc_base.status = 'F'
+            doc_base.save()
+        # duration = (finished - self.started).seconds
+        print("%s thread started at %s and finished at %s in %s seconds" %
+              (self.document_id, self.started, finished, 0))
 
 
 def new_doc(request):
@@ -161,50 +196,59 @@ def new_doc(request):
 
         if result:
             post = form.save(commit=False)
-            key = str(uuid.uuid4())
-            key = key[:20]
+            # A hash key serve para identificar os arquivos gerados em um mesmo processamento
+            if not post.chave:
+                hash_key = str(uuid.uuid4())[:20]
+            else:
+                hash_key = post.chave
             if request.FILES:
-                if post.tipo == 'keywords':
-                    filename = os.path.join(settings.MEDIA_ROOT, 'output', post.arquivo.name)
-                    url_filename = os.path.join('output', post.arquivo.name)
-                    doc = Documento.objects.create(nome=form.nome, email=form.email, arquivo=url_filename,
-                                                   tipo=form.tipo, chave=key, font_type=form.font_type)
+                # Verifica se todos os arquivos são PDF ou TXT antes de gravar
+                for f in request.FILES.getlist('arquivo'):
+                    filename, extensao = os.path.splitext(str(f))
+                    if not (extensao == '.pdf' or extensao == '.txt'):
+                        messages.error(request,
+                                       'Extensão do arquivo %s inválida. Por favor selecione arquivos .txt ou .pdf' %
+                                       filename)
+                        return render(request, 'person_form.html', {'form': form, 'recaptcha': recaptcha})
 
-                    return custom_redirect('nuvem', doc.pk, chave=key)
+                docs = []
+                total_size = 0
+                for f in request.FILES.getlist('arquivo'):
+                    filename, extensao = os.path.splitext(str(f))
+                    doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=f, tipo=post.tipo,
+                                                   font_type=post.font_type, chave=hash_key)
+                    docs.append(doc)
+                    total_size += os.path.getsize(doc.arquivo.path)
+
+                # se houver mais de um arquivo ou se o arquivo for PDF e maior que 5Mb,
+                # a conversão será feita via thread
+                if len(docs) > 1 or post.chave:
+                    extra_filename = 'output/' + hash_key + '.txt'
+                    try:
+                        doc_final = Documento.objects.get(chave=hash_key, consolidado=True)
+                    except Documento.DoesNotExist:
+                        doc_final = Documento.objects.create(
+                                        nome=post.nome, email=post.email, arquivo=extra_filename,
+                                        tipo=post.tipo, chave=hash_key,
+                                        font_type=post.font_type, status='P', consolidado=True)
+                    conversao_pdf = True
                 else:
-                    # Verifica se todos os arquivos são PDF ou TXT antes de gravar
-                    for f in request.FILES.getlist('arquivo'):
-                        filename, extensao = os.path.splitext(str(f))
-                        if not (extensao == '.pdf' or extensao == '.txt'):
-                            messages.error(request,
-                                           'Extensão do arquivo %s inválida. Por favor selecione arquivos .txt ou .pdf' %
-                                           filename)
-                            return render(request, 'person_form.html', {'form': form, 'recaptcha': recaptcha})
-
-                    docs = []
-                    for f in request.FILES.getlist('arquivo'):
-                        filename, extensao = os.path.splitext(str(f))
-                        doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=f, tipo=post.tipo,
-                                                       chave=key, font_type=post.font_type)
-                        if extensao == '.pdf':
-                            pdf2txt(doc.arquivo.path)
-                        docs.append(doc)
-
-                    if len(docs) > 1:
-                        extra_filename = str(uuid.uuid4()) + '.txt'
-                        extra_file = open(os.path.join(settings.MEDIA_ROOT, 'output', extra_filename), 'w+')
-                        for doc in docs:
-                            filename, extensao = os.path.splitext(doc.arquivo.path)
-                            with open(filename + '.txt', 'r') as f:
-                                extra_file.write(f.read())
-                                extra_file.write('\n')
-                        extra_file.close()
-                        extra_filename = os.path.join('output', extra_filename)
-                        doc_extra = Documento.objects.create(nome=post.nome, email=post.email, arquivo=extra_filename,
-                                                             tipo=post.tipo, chave=key, font_type=post.font_type)
-                        return custom_redirect('nuvem', doc_extra.pk, chave=key)
+                    doc_final = docs[0]
+                    if extensao == '.txt':
+                        conversao_pdf = False
                     else:
-                        return custom_redirect('nuvem', docs[0].pk, chave=key)
+                        conversao_pdf = total_size > (5 * 1048576)
+                        if not conversao_pdf:
+                            pdf2txt(doc_final.arquivo.path)
+
+                if conversao_pdf:
+                    pthread = ProcessThread(doc_final.id)
+                    pthread.start()
+                    return render(request, 'nuvem.html', {'allow_edit': False, 'doc': doc_final})
+                else:
+                    doc_final.status = 'F'
+                    doc_final.save()
+                    return custom_redirect('nuvem', doc_final.pk)
             else:
                 messages.error(request, 'Nenhum arquivo enviado')
 

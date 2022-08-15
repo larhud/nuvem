@@ -23,27 +23,41 @@
               {% if message.tags %}<div class="alert alert-{% if message.tags == 'error' %}danger{%else%}{{message.tags}}{%endif%} alert-dismissible fade show mt-3" role="alert">{{message}}<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>{% endif %}
         {% endfor %}
     {% endif %}
-    <h2 style="margin-top: 20px">
-        {% if doc.descritivo%}
-            {{ doc.descritivo }}
-        {% else %}
-        Nuvem gerada com sucesso!!
+
+    {% if doc.status == 'F' %}
+        <h2 style="margin-top: 20px">
+            {% if doc.descritivo %}
+                {{ doc.descritivo }}
+            {% else %}
+                Nuvem gerada com sucesso!!
+            {% endif %}
+        </h2>
+        <img src="{{ nuvem }}" alt="" height="500">
+        <br/>
+        <p>Usuário: {{ doc.nome}}</p>
+        <p>Linguagem reconhecida: {{ doc.language }}</p>
+        <p><a href="{{ doc.texto}}">Arquivo Texto já sem as stopwords</a></p>
+        <p><a href="{{ doc.csv }}">Arquivo de Frequência</a></p>
+
+        {% if allow_edit %}
+        <div style="margin-bottom: 10px">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Alterar Layout</button>
+        </div>
         {% endif %}
-    </h2>
-
-    <img src="{{ nuvem }}" alt="" height="500">
-    <p>Usuário: {{ doc.nome}}</p>
-    <p>Linguagem reconhecida: {{ doc.select }}</p>
-    <p>Font Utilizada: {{ doc.font_type }}</p>
-    <p><a href="{{ doc.texto}}">Arquivo Texto já sem as stopwords</a></p>
-    <p><a href="{{ doc.csv }}">Arquivo de Frequência</a></p>
-
-    {% if show %}
-    <div style="margin-bottom: 10px">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Alterar Layout</button>
-    </div>
+    {% elif doc.status == 'E' %}
+        <div style="margin-top: 10px">
+        <h2>Ocorreu um erro ao gerar a nuvem :( <a href="{{ doc.texto }}">Clique aqui para visualizar o log de erro</a></h2>
+        </div>
+    {% else %}
+        <div style="margin-top: 10px">
+        <h2>Processamento em andamento.</h2>
+        <a href="/nuvem/nuvem/{{ doc.id }}?chave={{ doc.chave }}">Clique aqui para atualizar a tela</a>
+        <p>ou</p>
+        <a href="/">Clique aqui para incluir mais arquivos.</a> Utilize a chave {{ doc.chave }}
+        </div>
     {% endif %}
 
+  {% if allow_edit %}
   <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -83,6 +97,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
 </div>
 {%endblock%}
 {% block extrascript %}

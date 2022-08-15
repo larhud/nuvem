@@ -24,11 +24,7 @@ class DocumentoForm(ModelForm):
 
     class Meta:
         model = Documento
-        fields = ['nome', 'email', 'tipo', 'font_type', 'arquivo']
-
-        # widgets = {
-        #     'font_type': forms.Select(choices=TYPES_FONT, attrs={'class': 'form-control'})
-        # }
+        fields = ['nome', 'email', 'tipo', 'font_type', 'arquivo', 'chave']
 
     def clean_arquivo(self):
         files = self.files.getlist('arquivo')
