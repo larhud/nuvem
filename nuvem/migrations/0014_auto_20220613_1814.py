@@ -10,9 +10,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='documento',
-            name='select',
-            field=models.CharField(blank=True, choices=[('Português', 'Português'), ('Espanhol', 'Espanhol'), ('Inglês', 'Inglês')], max_length=12, null=True),
-        ),
     ]
