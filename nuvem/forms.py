@@ -58,4 +58,3 @@ class LayoutForm(forms.Form):
     # min_size = forms.IntegerField(widget=forms.IntegerField(), label='Frequência mínima:', initial=2)
     cores = forms.BooleanField(widget=forms.CheckboxInput,
                                label='Cores da Imagem', required=False)
-

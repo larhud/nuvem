@@ -57,6 +57,12 @@ class Documento(models.Model):
     def img(self):
         filename = os.path.splitext(os.path.basename(self.arquivo.path))[0]
         return os.path.join(settings.MEDIA_URL, 'output', filename + '.png')
+
+    @property
+    def tamanho(self):
+        filesize = os.path.getsize(self.arquivo.path)
+        kb_size = round(filesize / 1024)
+        return str(kb_size) + 'KB'
             
     def pdf_link(self):
         return mark_safe('<a class="grp-button" href="/nuvem/nuvem/%s?chave=%s">Gerar Nuvem</a>' % (self.id, self.chave))
