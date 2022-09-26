@@ -1,6 +1,8 @@
 import os
+from pydoc import Doc, doc
 import sys
 import re
+from telnetlib import DO
 import uuid
 import json
 import urllib
@@ -13,6 +15,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from threading import Thread
 from datetime import datetime
+from nuvem.admin import DocumentoAdmin
 
 from nuvem.models import Documento
 from nuvem.forms import DocumentoForm, LayoutForm
@@ -21,6 +24,12 @@ from gerador.genwordcloud import generate, generate_words
 from django.contrib import messages
 from gerador.pdf2txt import pdf2txt
 
+#Imports issue#6
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.utils.encoding import force_text
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 detectlanguage.configuration.api_key = settings.API_KEY_LANGUAGE
@@ -28,7 +37,6 @@ detectlanguage.configuration.api_key = settings.API_KEY_LANGUAGE
 
 def home(request):
     return render(request, 'home.html')
-
 
 class ProcessThread(Thread):
     def __init__(self, document_id):
@@ -60,13 +68,13 @@ class ProcessThread(Thread):
         duration = (finished - self.started).seconds
         print("%s thread started at %s and finished at %s in %s seconds" %
               (self.document_id, self.started, finished, duration))
-
-
+                
 def new_doc(request):
     form = DocumentoForm(request.POST or None, request.FILES or None)
     recaptcha = getattr(settings, "GOOGLE_RECAPTCHA_PUBLIC_KEY", None)
 
     if form.is_valid():
+
         if recaptcha:
             recaptcha_response = request.POST.get('g-recaptcha-response')
             url = 'https://www.google.com/recaptcha/api/siteverify'
@@ -173,6 +181,7 @@ def nuvem(request, id):
 
     if request.POST:
         if form.is_valid():
+            
             documento.descritivo = form.cleaned_data.get('descricao')
             if form.cleaned_data.get('imagem'):
                 documento.imagem = form.cleaned_data.get('imagem')
@@ -186,10 +195,29 @@ def nuvem(request, id):
             documento.save()
             messages.success(request, 'Alteração salva com sucesso.')
 
-    nome_arquivo = documento.arquivo.path
+            # issue6
+            LogEntry.objects.log_action(
+                user_id = User.objects.get(username='SYS').pk,
+                content_type_id = ContentType.objects.get_for_model(documento).pk,
+                object_id = documento.pk,
+                object_repr = u"%s" %documento,
+                action_flag = CHANGE,
+                change_message='Documento Alterado!'
+            )
 
-    # if not os.path.exists(FONT_PATH + '\\' + documento.font_type):
-    #    messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte. Path: %s' % (FONT_PATH + '\\' + documento.font_type))
+    #Caso onde o documento foi criado pela primeira vez
+    else:
+        # issue6
+            LogEntry.objects.log_action(
+                user_id = User.objects.get(username='SYS').pk,
+                content_type_id = ContentType.objects.get_for_model(documento).pk,
+                object_id = documento.pk,
+                object_repr = u"%s" %documento,
+                action_flag = ADDITION,
+                change_message='Documento Criado!'
+            )
+
+    nome_arquivo = documento.arquivo.path
 
     prefix, file_extension = os.path.splitext(nome_arquivo)  # prefix = (root,ext)
     if not os.path.exists(prefix + '.txt'):  # caso nao seja um arquivo txt
@@ -233,12 +261,6 @@ def nuvem(request, id):
     if not os.path.exists(os.path.join(settings.FONT_PATH, font_type)):
         messages.error(request,
                        'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte.')
-
-    # if documento.font_type:
-    #     try:
-    #         os.path.exists(documento.font_type)
-    #     except Exception:
-    #         messages.error(request, 'A fonte escolhida não foi encontrada na pasta. Por favor veriricar a inslação da fonte.')
 
     # Fix error: Not Implement methods para imagens com menos de 3 canais.
     if channel >= 3 or not documento.cores:
