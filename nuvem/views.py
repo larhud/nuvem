@@ -1,5 +1,4 @@
 import os
-from pydoc import Doc, doc
 import sys
 import re
 from telnetlib import DO
@@ -46,6 +45,7 @@ class ProcessThread(Thread):
 
     def run(self):
         doc_base = Documento.objects.get(id=self.document_id)
+
         if doc_base.consolidado:
             extra_file = open(doc_base.arquivo.path, 'w+')
             for doc in Documento.objects.filter(chave=doc_base.chave).exclude(id=self.document_id):
@@ -115,6 +115,17 @@ def new_doc(request):
                                                    font_type=post.font_type, chave=hash_key)
                     docs.append(doc)
                     total_size += os.path.getsize(doc.arquivo.path)
+                
+                #Caso onde o documento foi criado pela primeira vez
+                # issue6
+                LogEntry.objects.log_action(
+                    user_id = User.objects.get(username='SYS').pk,
+                    content_type_id = ContentType.objects.get_for_model(doc).pk,
+                    object_id = doc.pk,
+                    object_repr = u"%s" %doc,
+                    action_flag = ADDITION,
+                    change_message='Documento adicionado'
+                )
 
                 # se houver mais de um arquivo ou se o arquivo for PDF e maior que 5Mb,
                 # a conversão será feita via thread
@@ -128,6 +139,18 @@ def new_doc(request):
                                         tipo=post.tipo, chave=hash_key,
                                         font_type=post.font_type, status='P', consolidado=True)
                     conversao_pdf = True
+
+                    #Caso onde o documento foi criado pela primeira vez e possui > 1 arquivo
+                    # issue6
+                    LogEntry.objects.log_action(
+                        user_id = User.objects.get(username='SYS').pk,
+                        content_type_id = ContentType.objects.get_for_model(doc_final).pk,
+                        object_id = doc_final.pk,
+                        object_repr = u"%s" %doc_final,
+                        action_flag = ADDITION,
+                        change_message='Documento adicionado'
+                    )
+
                 else:
                     doc_final = docs[0]
                     if extensao == '.txt':
@@ -166,6 +189,7 @@ def custom_redirect(url_name, *args, **kwargs):
 
 def nuvem(request, id):
     documento = Documento.objects.get(pk=id)
+
     if documento.status != 'F':
         return render(request, 'nuvem.html', {'allow_edit': False, 'doc': documento})
 
@@ -202,19 +226,7 @@ def nuvem(request, id):
                 object_id = documento.pk,
                 object_repr = u"%s" %documento,
                 action_flag = CHANGE,
-                change_message='Documento Alterado!'
-            )
-
-    #Caso onde o documento foi criado pela primeira vez
-    else:
-        # issue6
-            LogEntry.objects.log_action(
-                user_id = User.objects.get(username='SYS').pk,
-                content_type_id = ContentType.objects.get_for_model(documento).pk,
-                object_id = documento.pk,
-                object_repr = u"%s" %documento,
-                action_flag = ADDITION,
-                change_message='Documento Criado!'
+                change_message='Documento alterado'
             )
 
     nome_arquivo = documento.arquivo.path
@@ -224,9 +236,7 @@ def nuvem(request, id):
         pdf2txt(documento.arquivo.path)  # vamos converter de pdf para txt
 
     nome_arquivo = prefix + '.txt'
-    # if os.path.exists(prefix + '.dedup'):                       #caso exista um arquivo.dedup
-    #    os.rename(prefix + '.dedup', prefix + key + '.dedup')   #renomear usando a key
-
+    
     numero_linhas = 50
     if not documento.language:
         try:
