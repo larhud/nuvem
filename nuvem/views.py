@@ -46,6 +46,16 @@ class ProcessThread(Thread):
     def run(self):
         doc_base = Documento.objects.get(id=self.document_id)
 
+        # issue6
+        LogEntry.objects.log_action(
+            user_id = User.objects.get(username='SYS').pk,
+            content_type_id = ContentType.objects.get_for_model(doc_base).pk,
+            object_id = doc_base.pk,
+            object_repr = u"%s" %doc_base,
+            action_flag = ADDITION,
+            change_message='Nuvem Acessada'
+        )
+
         if doc_base.consolidado:
             extra_file = open(doc_base.arquivo.path, 'w+')
             for doc in Documento.objects.filter(chave=doc_base.chave).exclude(id=self.document_id):
@@ -216,11 +226,12 @@ def nuvem(request, id):
             documento.stopwords = form.cleaned_data.get('stopwords')
             documento.cores = form.cleaned_data.get('cores')
             documento.language = form.cleaned_data.get('select')
-            documento.save()
-            messages.success(request, 'Alteração salva com sucesso.')
 
             # issue6
-            LogEntry.objects.log_action(
+            #Caso onde as stopwords não foram adicionadas e o documento foi alterado
+            if (Documento.objects.filter(stopwords = documento.stopwords)):
+
+                LogEntry.objects.log_action(
                 user_id = User.objects.get(username='SYS').pk,
                 content_type_id = ContentType.objects.get_for_model(documento).pk,
                 object_id = documento.pk,
@@ -228,7 +239,22 @@ def nuvem(request, id):
                 action_flag = CHANGE,
                 change_message='Documento alterado'
             )
+            #Caso onde as stopwords foram adicionadas/alteradas, tem preferencia sobre as demais mundanças
+            else:
+                
+                LogEntry.objects.log_action(
+                user_id = User.objects.get(username='SYS').pk,
+                content_type_id = ContentType.objects.get_for_model(documento).pk,
+                object_id = documento.pk,
+                object_repr = u"%s" %documento,
+                action_flag = CHANGE,
+                change_message='Stopwords adicionadas'
+                )
 
+            documento.save()
+            messages.success(request, 'Alteração salva com sucesso.')
+
+            
     nome_arquivo = documento.arquivo.path
 
     prefix, file_extension = os.path.splitext(nome_arquivo)  # prefix = (root,ext)
