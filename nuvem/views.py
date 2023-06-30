@@ -112,75 +112,90 @@ def nuvem(request, id):
 
 
 def new_doc(request):
-    form = DocumentoForm(request.POST or None, request.FILES or None)
     recaptcha = getattr(settings, "GOOGLE_RECAPTCHA_PUBLIC_KEY", None)
+    chave_nome = 'documento-nome-pesquisador'
+    chave_email = 'documento-email-pesquisador'
 
-    if form.is_valid():
-        if recaptcha:
-            recaptcha_response = request.POST.get('g-recaptcha-response')
-            url = 'https://www.google.com/recaptcha/api/siteverify'
-            values = {
-                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-                'response': recaptcha_response
-            }
-            data = urllib.parse.urlencode(values).encode()
-            req = urllib.request.Request(url, data=data)
-            response = urllib.request.urlopen(req)
-            result = json.loads(response.read().decode())
-            result = result['success']
-        else:
-            result = True
+    if request.method == 'GET':
+        initial = {
+            'nome': request.COOKIES.get(chave_nome),
+            'email': request.COOKIES.get(chave_email)
+        }
+        form = DocumentoForm(initial=initial)
+    else:
+        form = DocumentoForm(request.POST, request.FILES)
 
-        if result:
-            post = form.save(commit=False)
-            key = str(uuid.uuid4())
-            key = key[:20]
-            if request.FILES:
-                if post.tipo == 'keywords':
-                    filename = os.path.join(settings.MEDIA_ROOT, 'output', post.arquivo.name)
-                    url_filename = os.path.join('output', post.arquivo.name)
-                    doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=url_filename,
-                                                   tipo=post.tipo, chave=key)
-
-                    return custom_redirect('nuvem', doc.pk, chave=key)
-                else:
-                    # Verifica se todos os arquivos são PDF ou TXT antes de gravar
-                    for f in request.FILES.getlist('arquivo'):
-                        filename, extensao = os.path.splitext(str(f))
-                        if not (extensao == '.pdf' or extensao == '.txt'):
-                            messages.error(request,
-                                           'Extensão do arquivo %s inválida. Por favor selecione arquivos .txt ou .pdf' %
-                                           filename)
-                            return render(request, 'person_form.html', {'form': form, 'recaptcha': recaptcha})
-
-                    docs = []
-                    for f in request.FILES.getlist('arquivo'):
-                        filename, extensao = os.path.splitext(str(f))
-                        doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=f, tipo=post.tipo,
-                                                       chave=key)
-                        if extensao == '.pdf':
-                            pdf2txt(doc.arquivo.path)
-                        docs.append(doc)
-
-                    if len(docs) > 1:
-                        extra_filename = str(uuid.uuid4()) + '.txt'
-                        extra_file = open(os.path.join(settings.MEDIA_ROOT, 'output', extra_filename), 'w+')
-                        for doc in docs:
-                            filename, extensao = os.path.splitext(doc.arquivo.path)
-                            with open(filename + '.txt', 'r') as f:
-                                extra_file.write(f.read())
-                                extra_file.write('\n')
-                        extra_file.close()
-                        extra_filename = os.path.join('output', extra_filename)
-                        doc_extra = Documento.objects.create(nome=post.nome, email=post.email, arquivo=extra_filename,
-                                                             tipo=post.tipo, chave=key)
-                        return custom_redirect('nuvem', doc_extra.pk, chave=key)
-                    else:
-                        return custom_redirect('nuvem', docs[0].pk, chave=key)
+        if form.is_valid():
+            if recaptcha:
+                recaptcha_response = request.POST.get('g-recaptcha-response')
+                url = 'https://www.google.com/recaptcha/api/siteverify'
+                values = {
+                    'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+                    'response': recaptcha_response
+                }
+                data = urllib.parse.urlencode(values).encode()
+                req = urllib.request.Request(url, data=data)
+                response = urllib.request.urlopen(req)
+                result = json.loads(response.read().decode())
+                result = result['success']
             else:
-                messages.error(request, 'Nenhum arquivo enviado')
+                result = True
 
-        else:
-            messages.error(request, 'ReCAPTCHA inválido. Por favor tente novamente!')
+            if result:
+                post = form.save(commit=False)
+                key = str(uuid.uuid4())
+                key = key[:20]
+                if request.FILES:
+                    if post.tipo == 'keywords':
+                        filename = os.path.join(settings.MEDIA_ROOT, 'output', post.arquivo.name)
+                        url_filename = os.path.join('output', post.arquivo.name)
+                        doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=url_filename,
+                                                       tipo=post.tipo, chave=key)
+
+                        return custom_redirect('nuvem', doc.pk, chave=key)
+                    else:
+                        # Verifica se todos os arquivos são PDF ou TXT antes de gravar
+                        for f in request.FILES.getlist('arquivo'):
+                            filename, extensao = os.path.splitext(str(f))
+                            if not (extensao == '.pdf' or extensao == '.txt'):
+                                messages.error(request,
+                                               'Extensão do arquivo %s inválida. Por favor selecione arquivos .txt ou .pdf' %
+                                               filename)
+                                return render(request, 'person_form.html', {'form': form, 'recaptcha': recaptcha})
+
+                        docs = []
+                        for f in request.FILES.getlist('arquivo'):
+                            filename, extensao = os.path.splitext(str(f))
+                            doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=f, tipo=post.tipo,
+                                                           chave=key)
+                            if extensao == '.pdf':
+                                pdf2txt(doc.arquivo.path)
+                            docs.append(doc)
+
+                        if len(docs) > 1:
+                            extra_filename = str(uuid.uuid4()) + '.txt'
+                            extra_file = open(os.path.join(settings.MEDIA_ROOT, 'output', extra_filename), 'w+')
+                            for doc in docs:
+                                filename, extensao = os.path.splitext(doc.arquivo.path)
+                                with open(filename + '.txt', 'r') as f:
+                                    extra_file.write(f.read())
+                                    extra_file.write('\n')
+                            extra_file.close()
+                            extra_filename = os.path.join('output', extra_filename)
+                            doc_extra = Documento.objects.create(nome=post.nome, email=post.email, arquivo=extra_filename,
+                                                                 tipo=post.tipo, chave=key)
+                            response = custom_redirect('nuvem', doc_extra.pk, chave=key)
+                        else:
+                            response = custom_redirect('nuvem', docs[0].pk, chave=key)
+
+                        response.set_cookie(chave_nome, form.cleaned_data['nome'], max_age=2592000)
+                        response.set_cookie(chave_email, form.cleaned_data['email'], max_age=2592000)
+
+                        return response
+                else:
+                    messages.error(request, 'Nenhum arquivo enviado')
+
+            else:
+                messages.error(request, 'ReCAPTCHA inválido. Por favor tente novamente!')
 
     return render(request, 'person_form.html', {'form': form, 'recaptcha': recaptcha})
