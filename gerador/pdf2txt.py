@@ -48,8 +48,13 @@ def pdf2txt(fname, pages=None):
     interpreter = PDFPageInterpreter(manager, converter)
 
     infile = open(fname, 'rb')
+    num_pagina = 1
     for page in PDFPage.get_pages(infile, pagenums, check_extractable=False):
-        interpreter.process_page(page)
+        try:
+            interpreter.process_page(page)
+            num_pagina += 1
+        except:
+            print('Erro processando página %d' % num_pagina)
     infile.close()
     converter.close()
     textfile.close()

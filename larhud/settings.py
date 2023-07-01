@@ -131,5 +131,5 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-FONT_PATH ='/usr/share/fonts/truetype/msttcorefonts/'
-# FONT_PATH = os.path.join(BASE_DIR, 'estaticos', 'fonts')
+# FONT_PATH ='/usr/share/fonts/truetype/msttcorefonts/'
+FONT_PATH = os.path.join(BASE_DIR, 'estaticos', 'fonts')

@@ -8,10 +8,9 @@ import csv
 from collections import Counter
 from wordcloud import WordCloud, ImageColorGenerator
 from django.conf import settings
-import matplotlib.pyplot as plt
 
 
-def generate_words(nome_arquivo, language='pt', mask=None, color=False):
+def generate_words(nome_arquivo, language='pt', mask=None, color=False, font_type=None, colormap=None):
     prefix, file_extension = os.path.splitext(nome_arquivo)
 
     try:
@@ -35,7 +34,7 @@ def generate_words(nome_arquivo, language='pt', mask=None, color=False):
             writer.writerow(item)
 
     cloud = WordCloud(width=1200, height=800, max_words=100, scale=1, background_color='white', mask=mask,
-                      font_path=os.path.join(settings.BASE_DIR, 'estaticos', 'fonts', 'Lato-Regular.ttf'),
+                      font_path=os.path.join(settings.FONT_PATH, font_type), colormap=colormap,
                       max_font_size=90, random_state=42)
 
     cloud.generate_from_frequencies(frequencia)
@@ -51,7 +50,7 @@ def generate_words(nome_arquivo, language='pt', mask=None, color=False):
     return image_filename
 
 
-def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False):
+def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False, font_type=None, colormap=None):
     excecoes = []
     sw_filename = os.path.join(settings.BASE_DIR, 'gerador', 'stopwords-%s.txt' % language)
     if language and os.path.exists(sw_filename):
@@ -71,7 +70,7 @@ def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False
     # Busca cabeçalhos e rodapés
     frequencia = Counter()
     for linha in arquivo.read().lower().split('\n'):
-        if len(linha) > 3:
+        if len(linha.strip()) > 3:
             frequencia[linha] += 1
     arquivo.close()
 
@@ -107,9 +106,9 @@ def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False
     def black_color_func(word, font_size, position, orientation, random_state=None, **kwargs):
         return "hsl(0,100%, 1%)"
 
-    cloud = WordCloud(width=1200, height=800, max_words=100, scale=4, background_color='white',
+    cloud = WordCloud(width=1200, height=800, max_words=100, scale=4, background_color='white', colormap=colormap,
                       mask=mask, min_font_size=5, max_font_size=100, random_state=40,
-                      font_path=settings.FONT_PATH+'Lato-Regular.ttf')
+                      font_path=os.path.join(settings.FONT_PATH, font_type))
 
     cloud.generate_from_frequencies(frequencia)
     # cloud.recolor(color_func=black_color_func)
