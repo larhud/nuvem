@@ -1,24 +1,26 @@
+import json
 import os
 import sys
-import uuid
-import json
 import urllib
+import uuid
+from datetime import datetime
+from threading import Thread
+
 import detectlanguage
 import numpy as np
 from PIL import Image
+from chunked_upload.constants import http_status
+from chunked_upload.exceptions import ChunkedUploadError
+from chunked_upload.views import ChunkedUploadView, ChunkedUploadCompleteView
+from django.conf import settings
+from django.contrib import messages
 from django.http import HttpResponseRedirect
-
 from django.shortcuts import render
 
-from threading import Thread
-from datetime import datetime
-
-from nuvem.models import Documento
-from nuvem.forms import DocumentoForm, LayoutForm
-from django.conf import settings
 from gerador.genwordcloud import generate, generate_words
-from django.contrib import messages
 from gerador.pdf2txt import pdf2txt
+from nuvem.forms import DocumentoForm, LayoutForm, UploadForm
+from nuvem.models import Documento
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -94,8 +96,8 @@ def nuvem(request, id):
                         trecho += linha + ' '
                         num_linha += 1
         except UnicodeDecodeError as erro:
-            linhas = open(nome_arquivo, encoding='ISO-8859-1').read().lower().split('.')[ 0:numero_linhas ]
-            trecho = ' '.join([ ('' if len(linha) < numero_linhas else linha) for linha in linhas ])
+            linhas = open(nome_arquivo, encoding='ISO-8859-1').read().lower().split('.')[0:numero_linhas]
+            trecho = ' '.join([('' if len(linha) < numero_linhas else linha) for linha in linhas])
         lang_detect = detectlanguage.detect(trecho)
         if len(lang_detect) > 0:
             precisao = lang_detect[0]['confidence']
@@ -223,9 +225,9 @@ def new_doc_test_size(request):
                         doc_final = Documento.objects.get(chave=hash_key, consolidado=True)
                     except Documento.DoesNotExist:
                         doc_final = Documento.objects.create(
-                                        nome=post.nome, email=post.email, arquivo=extra_filename,
-                                        tipo=post.tipo, chave=hash_key,
-                                        font_type=post.font_type, status='P', consolidado=True)
+                            nome=post.nome, email=post.email, arquivo=extra_filename,
+                            tipo=post.tipo, chave=hash_key,
+                            font_type=post.font_type, status='P', consolidado=True)
                     conversao_pdf = True
                 else:
                     doc_final = docs[0]
@@ -326,7 +328,8 @@ def new_doc(request):
                                     extra_file.write('\n')
                             extra_file.close()
                             extra_filename = os.path.join('output', extra_filename)
-                            doc_extra = Documento.objects.create(nome=post.nome, email=post.email, arquivo=extra_filename,
+                            doc_extra = Documento.objects.create(nome=post.nome, email=post.email,
+                                                                 arquivo=extra_filename,
                                                                  tipo=post.tipo, chave=key, status='F')
                             response = custom_redirect('nuvem', doc_extra.pk, chave=key)
                         else:
@@ -345,3 +348,39 @@ def new_doc(request):
                 messages.error(request, 'ReCAPTCHA inválido. Por favor tente novamente!')
 
     return render(request, 'person_form.html', {'form': form, 'recaptcha': recaptcha})
+
+
+class NuvemUploadView(ChunkedUploadView):
+    field_name = 'arquivo'  # Nome do campo do formulário onde o arquivo será enviado
+
+    def check_permissions(self, request):
+        # Permite que usuários não autenticados façam upload
+        pass
+
+    def validate(self, request):
+        form = UploadForm(request.POST, request.FILES)
+
+        if not form.is_valid():
+            raise ChunkedUploadError(status=http_status.HTTP_400_BAD_REQUEST,
+                                     errors=form.errors.as_json())
+
+
+class NuvemUploadCompleteView(ChunkedUploadCompleteView):
+
+    def on_completion(self, uploaded_file, request):
+        # Lógica a ser executada quando o upload for concluído
+        Documento.objects.create(nome='ND', email='ND', arquivo=uploaded_file)
+        chunked_upload_obj = self.model.objects.get(upload_id=request.POST.get('upload_id'))
+        chunked_upload_obj.delete()
+
+    def get_response_data(self, chunked_upload, request):
+        return {'message': ("You successfully uploaded '%s' (%s bytes)!" %
+                            (chunked_upload.filename, chunked_upload.offset))}
+
+    def check_permissions(self, request):
+        # Permite que usuários não autenticados façam upload
+        pass
+
+
+def transcribe(request):
+    return render(request, 'trascribe.html', {'form': UploadForm()})

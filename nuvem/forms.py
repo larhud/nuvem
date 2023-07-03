@@ -42,8 +42,8 @@ colormap_url = 'https://www.kaggle.com/code/niteshhalai/wordcloud-colormap'
 
 
 class LayoutForm(forms.Form):
-    language = forms.ChoiceField(label='Selecione o idioma:',choices=TYPES_LANG, required=True)
-    font_type = forms.ChoiceField(label= 'Selecione a fonte:',choices=TYPES_FONT, required=True)
+    language = forms.ChoiceField(label='Selecione o idioma:', choices=TYPES_LANG, required=True)
+    font_type = forms.ChoiceField(label='Selecione a fonte:', choices=TYPES_FONT, required=True)
     colormap = forms.CharField(
         label='Mapa de Cores', required=False,
         help_text=mark_safe(f"Visualize os mapas possíveis <a href='{colormap_url}' target='_blank'>aqui</a>"))
@@ -59,3 +59,15 @@ class LayoutForm(forms.Form):
     cores = forms.BooleanField(widget=forms.CheckboxInput,
                                label='Utilizar as cores da Imagem', required=False)
 
+
+class UploadForm(DocumentoForm):
+    arquivo = forms.FileField(label='Arquivo em PDF ou Texto', widget=forms.FileInput(attrs={'accept': '.txt,.pdf'}))
+
+    class Meta(DocumentoForm.Meta):
+        fields = ['arquivo']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ['tipo', 'font_type', 'chave']:
+            self.fields[name].widget = forms.HiddenInput()
+            self.fields[name].required = False

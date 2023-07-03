@@ -11,5 +11,5 @@ pdfminer3
 matplotlib
 gunicorn
 detectlanguage
-
+django-chunked-upload==2.0.0
 
