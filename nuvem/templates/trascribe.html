@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load bootstrap static %}
+{% block title %}Gerador de Nuvem de Palavras{% endblock %}
+
+{% block main %}
+<div class="row">
+  <div class="col-sm-2"></div>
+  <div class="col-sm-8">
+    <br>
+    <form method="POST" enctype="multipart/form-data" id="upload-form" action="{% url 'nuvem_upload' %}">
+      {% csrf_token %}
+      {{ form|bootstrap }}
+      {{ form.media }}
+      <div class="form-group">
+        <button type="submit" class="btn btn-info" id="start-upload">Enviar</button>
+      </div>
+      <div class="form-group">
+        <div class="progress" style="height: 30px;">
+          <div id="bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+               role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extrascript %}
+  {{ block.super }}
+  <script src="{% static 'admin/js/vendor/jquery/jquery.min.js' %}"></script>
+  <script src="{% static 'jquery-fileupload/js/vendor/jquery.ui.widget.js' %}"></script>
+  <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+  <script src="{% static 'jquery-fileupload/js/jquery.iframe-transport.js' %}"></script>
+  <!-- The basic File Upload plugin -->
+  <script src="{% static 'jquery-fileupload/js/jquery.fileupload.js' %}"></script>
+  <!-- Calculate md5 -->
+  <script src="{% static 'spark-md5.min.js' %}"></script>
+  <script type="text/javascript">
+    let md5 = "",
+        csrf = $("input[name='csrfmiddlewaretoken']")[0].value,
+        form_data = [{"name": "csrfmiddlewaretoken", "value": csrf}];
+
+    function calculate_md5(file, chunk_size) {
+      let slice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
+          chunks = Math.ceil(file.size / chunk_size),
+          current_chunk = 0,
+          spark = new SparkMD5.ArrayBuffer();
+
+      function onload(e) {
+        spark.append(e.target.result);  // append chunk
+        current_chunk++;
+        if (current_chunk < chunks) {
+          read_next_chunk();
+        } else {
+          md5 = spark.end();
+        }
+      }
+
+      function read_next_chunk() {
+        let reader = new FileReader();
+        reader.onload = onload;
+        let start = current_chunk * chunk_size,
+            end = Math.min(start + chunk_size, file.size);
+        reader.readAsArrayBuffer(slice.call(file, start, end));
+      }
+
+      read_next_chunk();
+    }
+
+    $("#upload-form").fileupload({
+      url: "{% url 'nuvem_upload' %}",
+      dataType: "json",
+      maxChunkSize: 10000000, // Chunks of 10 MB
+      formData: form_data,
+      replaceFileInput: false,
+      add: function(e, data) {
+          // Called before starting upload
+          // If this is the second file you're uploading we need to remove the
+          // old upload_id and just keep the csrftoken (which is always first).
+          $('#start-upload').on('click', function (e) {
+              e.preventDefault();
+
+              form_data.splice(1);
+
+              calculate_md5(data.files[0], 10000000);  // Again, chunks of 10 MB
+
+              data.submit();
+          });
+      },
+      chunkdone: function (e, data) {
+          // Called after uploading each chunk
+          if (form_data.length < 2) {
+            form_data.push(
+              {"name": "upload_id", "value": data.result.upload_id}
+            );
+          }
+
+          let progress = parseInt(data.loaded / data.total * 100.0, 10);
+
+          $("#bar").css("width", progress + "%");
+      },
+      done: function (e, data) {
+          // Called when the file has completely uploaded
+          $.ajax({
+            type: "POST",
+            url: "{% url 'nuvem_upload_completo' %}",
+            data: {
+              csrfmiddlewaretoken: csrf,
+              upload_id: data.result.upload_id,
+              md5: md5
+            },
+            dataType: "json",
+            success: function(data) {
+                // Handle success response
+                alert('Arquivo enviado');
+                $("#bar").css("width", "0%");
+            },
+            error: function (request, status, error) {
+                alert(request.responseText);
+            }
+          });
+      },
+      fail: function (e, data) {
+          if (data.jqXHR.responseJSON.errors.length > 0){
+
+              let errors = JSON.parse(data.jqXHR.responseJSON.errors);
+              let msg = '';
+
+              Object.keys(errors).forEach(function(key) {
+                  let errorList = errors[key];
+
+                  errorList.forEach(function (item){
+                      msg += item.message + '\n';
+                  });
+              });
+
+              alert(msg);
+          } else {
+              alert(data.errorThrown);
+          }
+      }
+    });
+  </script>
+{% endblock %}
