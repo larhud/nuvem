@@ -303,7 +303,9 @@ def new_doc(request):
                     if post.tipo == 'keywords':
                         url_filename = os.path.join('output', post.arquivo.name)
                         doc = Documento.objects.create(nome=post.nome, email=post.email, arquivo=url_filename,
-                                                       tipo=post.tipo, chave=key, status='F')
+                                                       tipo=post.tipo, chave=key, status='F',
+                                                       font_type = post.font_type
+                        )
 
                         return custom_redirect('nuvem', doc.pk, chave=key)
                     else:
