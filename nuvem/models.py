@@ -23,7 +23,8 @@ TYPES_FONT = [
     ('Comfortaa Bold.ttf', 'Comfortaa-Bold'),
     ('Cooper Regular.ttf', 'Cooper'),
     ('Lato-Regular.ttf', 'Lato-Regular'),
-    ('Poppins-Regular.ttf', 'Poppins')
+    ('Poppins-Regular.ttf', 'Poppins'),
+    ('Lobster-Regular.ttf','Lobster')
 ]
 
 
@@ -38,6 +39,7 @@ class Documento(models.Model):
     stopwords = models.TextField('Stopwords Extras', null=True, blank=True)
     chave = models.CharField('Chave de Acesso', max_length=20, null=True, blank=True)
     cores = models.BooleanField(default=False)
+    colormap = models.CharField('Mapa de Cores', max_length=20, default='viridis')
     font_type = models.CharField('Font Type', max_length=40, choices=TYPES_FONT, null=True, blank=True)
     consolidado = models.BooleanField(default=False)
     status = models.CharField(choices=(('A', 'Aberto'), ('P', 'Programado'), ('F', 'Finalizado'),
@@ -57,6 +59,12 @@ class Documento(models.Model):
     def img(self):
         filename = os.path.splitext(os.path.basename(self.arquivo.path))[0]
         return os.path.join(settings.MEDIA_URL, 'output', filename + '.png')
+
+    @property
+    def tamanho(self):
+        filesize = os.path.getsize(self.arquivo.path)
+        kb_size = round(filesize / 1024)
+        return str(kb_size) + 'KB'
 
     def pdf_link(self):
         return mark_safe('<a class="grp-button" href="/nuvem/nuvem/%s?chave=%s">Gerar Nuvem</a>' % (self.id, self.chave))

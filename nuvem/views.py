@@ -13,6 +13,7 @@ from django.shortcuts import render
 from threading import Thread
 from datetime import datetime
 
+from nuvem.apps import normalize_colormap
 from nuvem.models import Documento
 from nuvem.forms import DocumentoForm, LayoutForm
 from django.conf import settings
@@ -108,16 +109,22 @@ def nuvem(request, id):
                           'descricao': documento.descritivo or None,
                           'font_type': documento.font_type,
                           'cores': documento.cores,
+                          'colormap': documento.colormap,
                           'language': documento.language
                       })
 
-    colormap = None
     allow_edit = documento.chave and request.GET.get('chave') and documento.chave == request.GET.get('chave')
+
+    # Confere se o mapa gravado realmene existe
+    documento.colormap = normalize_colormap(documento.colormap)
 
     if request.POST:
         if form.is_valid():
             documento.descritivo = form.cleaned_data.get('descricao')
             colormap = form.cleaned_data.get('colormap')
+            documento.colormap = normalize_colormap(colormap)
+            if colormap != documento.colormap:
+                messages.warning(request, 'O mapa de cores não foi encontrado. Verifique se não houve erro de digitação')
             if form.cleaned_data.get('imagem'):
                 documento.imagem = form.cleaned_data.get('imagem')
                 documento.cores = form.cleaned_data.get('cores')
@@ -155,9 +162,11 @@ def nuvem(request, id):
         color = False
 
     if documento.tipo == 'keywords':
-        imagem = generate_words(nome_arquivo, documento.language, mask, color, font_type, colormap)
+        imagem = generate_words(nome_arquivo, documento.language, mask, color, font_type,
+                                documento.colormap)
     else:
-        imagem = generate(nome_arquivo, documento.stopwords, documento.language, mask, color, font_type, colormap)
+        imagem = generate(nome_arquivo, documento.stopwords, documento.language, mask, color, font_type,
+                          documento.colormap)
 
     contexto = {
         'allow_edit': allow_edit,

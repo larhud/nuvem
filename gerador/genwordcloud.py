@@ -107,7 +107,7 @@ def generate(nome_arquivo, stopwords=None, language='pt', mask=None, color=False
         return "hsl(0,100%, 1%)"
 
     cloud = WordCloud(width=1200, height=800, max_words=100, scale=4, background_color='white', colormap=colormap,
-                      mask=mask, min_font_size=5, max_font_size=100, random_state=40,
+                      mask=mask, min_font_size=5, max_font_size=150, random_state=40,
                       font_path=os.path.join(settings.FONT_PATH, font_type))
 
     cloud.generate_from_frequencies(frequencia)

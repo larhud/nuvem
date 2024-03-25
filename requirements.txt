@@ -11,5 +11,6 @@ pdfminer3
 matplotlib
 gunicorn
 detectlanguage
+minio
 
 
